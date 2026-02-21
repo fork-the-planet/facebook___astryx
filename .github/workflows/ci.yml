@@ -82,15 +82,22 @@ jobs:
       - name: Build Storybook
         run: yarn workspace @xds/storybook build
 
+      - name: Compute short hash
+        id: hash
+        run: |
+          COMMIT_HASH="${{ github.event.pull_request.head.sha }}"
+          echo "short_hash=${COMMIT_HASH:0:7}" >> $GITHUB_OUTPUT
+
       - name: Build Sandbox
         run: yarn workspace @xds/sandbox build
         continue-on-error: true
+        env:
+          SANDBOX_BASE_PATH: /${{ steps.hash.outputs.short_hash }}/sandbox
 
       - name: Compute URLs
         id: urls
         run: |
-          COMMIT_HASH="${{ github.event.pull_request.head.sha }}"
-          SHORT_HASH="${COMMIT_HASH:0:7}"
+          SHORT_HASH="${{ steps.hash.outputs.short_hash }}"
           REPO_NAME="${{ github.event.repository.name }}"
           REPO_OWNER="${{ github.repository_owner }}"
 
@@ -112,9 +119,9 @@ jobs:
           mkdir -p deploy/${SHORT_HASH}
           cp -r apps/storybook/dist/* deploy/${SHORT_HASH}/
 
-          if [ -d "apps/sandbox/dist" ]; then
+          if [ -d "apps/sandbox/out" ]; then
             mkdir -p deploy/${SHORT_HASH}/sandbox
-            cp -r apps/sandbox/dist/* deploy/${SHORT_HASH}/sandbox/
+            cp -r apps/sandbox/out/* deploy/${SHORT_HASH}/sandbox/
           fi
 
           touch deploy/.nojekyll
@@ -141,11 +148,10 @@ jobs:
           path: analysis.json
           retention-days: 1
 
-  # Capture component screenshots and videos (parallel with a11y)
-  # Skipped when no components changed. No yarn install needed.
-  pr-screenshots:
-    needs: [build, check-components]
-    if: needs.check-components.outputs.has_components == 'true'
+  # Post PR comment with preview links + analysis as soon as build finishes
+  # Does NOT wait for test, screenshots, or a11y — those update the comment later
+  pr-comment:
+    needs: [build]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -161,6 +167,79 @@ jobs:
         with:
           name: pr-analysis
 
+      - name: Generate PR comment
+        run: |
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+          echo '{"components":{},"summary":{"componentsAudited":0,"totalViolations":0}}' > a11y-report.json
+
+          COMMENT_BODY=$(node .github/scripts/generate-pr-comment.js \
+            --analysis analysis.json \
+            --a11y a11y-report.json \
+            --storybook-url "${{ needs.build.outputs.storybook_url }}" \
+            --sandbox-url "${{ needs.build.outputs.sandbox_url }}" \
+            --run-url "$RUN_URL" \
+            --pr-number "${{ github.event.pull_request.number }}" \
+            --pending)
+
+          echo "$COMMENT_BODY" > pr-comment.md
+
+      - name: Comment on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const body = fs.readFileSync('pr-comment.md', 'utf8');
+            const prNumber = ${{ github.event.pull_request.number }};
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+            });
+
+            const botComment = comments.find(comment =>
+              comment.user.type === 'Bot' &&
+              comment.body.includes('PR Analysis Report')
+            );
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: body
+              });
+            }
+
+  # Capture component screenshots and videos (parallel with a11y)
+  # Skipped when no components changed.
+  pr-screenshots:
+    needs: [build, check-components]
+    if: needs.check-components.outputs.has_components == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'yarn'
+
+      - name: Download analysis artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: pr-analysis
+
       - name: Download Storybook artifact
         uses: actions/download-artifact@v4
         with:
@@ -168,7 +247,7 @@ jobs:
           path: apps/storybook/dist
 
       - name: Install Playwright
-        run: npx playwright install chromium
+        run: yarn install --frozen-lockfile && npx playwright install chromium
 
       - name: Install ffmpeg for video conversion
         run: sudo apt-get update && sudo apt-get install -y ffmpeg
@@ -232,7 +311,7 @@ jobs:
           retention-days: 30
 
   # Accessibility audit (parallel with screenshots)
-  # Skipped when no components changed. No yarn install needed.
+  # Skipped when no components changed.
   pr-a11y:
     needs: [build, check-components]
     if: needs.check-components.outputs.has_components == 'true'
@@ -245,6 +324,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: 'yarn'
 
       - name: Download analysis artifact
         uses: actions/download-artifact@v4
@@ -258,7 +338,7 @@ jobs:
           path: apps/storybook/dist
 
       - name: Install Playwright
-        run: npx playwright install chromium
+        run: yarn install --frozen-lockfile && npx playwright install chromium
 
       - name: Run accessibility audit
         run: |
@@ -275,11 +355,10 @@ jobs:
           path: a11y-report.json
           retention-days: 1
 
-  # Post PR comment with results
-  # Waits for test to pass. Runs even when screenshots/a11y are skipped.
-  pr-comment:
-    needs: [test, build, check-components, pr-screenshots, pr-a11y]
-    if: always() && needs.test.result == 'success' && needs.build.result == 'success'
+  # Update PR comment with screenshots + a11y results once they're ready
+  pr-comment-update:
+    needs: [build, check-components, pr-screenshots, pr-a11y]
+    if: always() && needs.build.result == 'success' && needs.check-components.outputs.has_components == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -308,7 +387,7 @@ jobs:
         with:
           name: a11y-report
 
-      - name: Generate PR comment
+      - name: Generate updated PR comment
         run: |
           RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
 
@@ -337,7 +416,7 @@ jobs:
 
           echo "$COMMENT_BODY" > pr-comment.md
 
-      - name: Comment on PR
+      - name: Update PR comment
         uses: actions/github-script@v7
         with:
           script: |

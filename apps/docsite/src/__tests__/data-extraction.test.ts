@@ -5,6 +5,7 @@
  * Run: yarn workspace @xds/docsite test
  */
 
+import * as fs from 'node:fs';
 import {describe, it, expect} from 'vitest';
 import {packages} from '../generated/packageRegistry';
 import {components, componentCount} from '../generated/componentRegistry';
@@ -371,5 +372,38 @@ describe('docsRegistry', () => {
   it('no duplicate topics', () => {
     const topics = docTopics.map(d => d.topic);
     expect(new Set(topics).size).toBe(topics.length);
+  });
+});
+
+// ── Theme Registry ─────────────────────────────────────────────────────
+
+describe('themeRegistry', () => {
+  const registryPath = new URL(
+    '../generated/themeRegistry.ts',
+    import.meta.url,
+  );
+  const registrySource = fs.readFileSync(registryPath, 'utf-8');
+
+  it('generates a themeRegistry file', () => {
+    expect(registrySource).toContain('themeObjects');
+  });
+
+  it('has an import and entry for every theme package', () => {
+    const themePackages = packages.filter(p =>
+      p.name.startsWith('@xds/theme-'),
+    );
+    expect(themePackages.length).toBeGreaterThan(0);
+    for (const pkg of themePackages) {
+      const slug = pkg.name.replace('@xds/theme-', '');
+      expect(registrySource).toContain(`from '${pkg.name}/built'`);
+      expect(registrySource).toContain(`'${pkg.name}': ${slug}Theme`);
+    }
+  });
+
+  it('has no entries for non-theme packages', () => {
+    const nonTheme = packages.filter(p => !p.name.startsWith('@xds/theme-'));
+    for (const pkg of nonTheme) {
+      expect(registrySource).not.toContain(`'${pkg.name}':`);
+    }
   });
 });

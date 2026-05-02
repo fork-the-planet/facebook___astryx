@@ -10,11 +10,67 @@ import {XDSHeading, XDSText} from '@xds/core/Text';
 import {XDSVStack, XDSHStack} from '@xds/core/Layout';
 import {XDSGrid} from '@xds/core/Grid';
 import {XDSSection} from '@xds/core/Section';
-import {XDSBadge} from '@xds/core/Badge';
 import {XDSButton} from '@xds/core/Button';
+import {XDSTheme, XDSMediaTheme} from '@xds/core/theme';
 import {packages} from '../generated/packageRegistry';
 import {componentCount} from '../generated/componentRegistry';
 import {docTopics} from '../generated/docsRegistry';
+import {ThemeShowcaseTile} from '../components/ThemeShowcaseTile';
+import {themeObjects} from '../generated/themeRegistry';
+
+const TerminalIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    aria-hidden="true"
+    width="48"
+    height="48"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}>
+    <path d="m7 11 2-2-2-2" />
+    <path d="M11 13h4" />
+    <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
+  </svg>
+);
+
+const CodeIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    aria-hidden="true"
+    width="48"
+    height="48"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}>
+    <path d="m18 16 4-4-4-4" />
+    <path d="m6 8-4 4 4 4" />
+    <path d="m14.5 4-5 16" />
+  </svg>
+);
+
+const PACKAGE_ICONS: Record<string, React.ReactNode> = {
+  '@xds/cli': <TerminalIcon />,
+  '@xds/core': <CodeIcon />,
+};
+
+const PACKAGE_IMAGES: Record<string, string> = {
+  '@xds/cli': '/LibrariesCli.png',
+  '@xds/core': '/LibrariesCore.png',
+};
+
+const foundationImages: Record<string, string> = {
+  color: '/FoundationsColors.png',
+  icons: '/FoundationsIcons.png',
+  shape: '/FoundationsShape.png',
+  spacing: '/FoundationsSpacing.png',
+  typography: '/FoundationsTypogrpahy.png',
+};
 
 const styles = stylex.create({
   pageContainer: {
@@ -32,6 +88,9 @@ const styles = stylex.create({
     borderRadius: 16,
     overflow: 'hidden',
     backgroundColor: 'var(--color-background-card)',
+    backgroundImage: 'url(/hero-bg.png)',
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
     minHeight: 300,
     display: 'flex',
     flexDirection: 'column',
@@ -70,10 +129,19 @@ const styles = stylex.create({
   },
   packageImageWrapper: {
     aspectRatio: '2/1',
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
     borderRadius: 12,
     position: 'relative' as const,
     marginBottom: 12,
     backgroundColor: 'var(--color-background-card)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  packageIconOverlay: {
+    color: '#484233',
+    opacity: 0.8,
   },
   monoText: {
     fontFamily: 'monospace',
@@ -88,8 +156,6 @@ const styles = stylex.create({
   },
 });
 
-const isThemePkg = (name: string) => name.includes('theme-');
-
 const foundationTopics = docTopics
   .filter(d => d.category === 'foundations')
   .sort((a, b) => {
@@ -100,9 +166,6 @@ const foundationTopics = docTopics
 
 export default function HomePage() {
   const coreCount = componentCount;
-  const libraryPackages = packages.filter(p => !isThemePkg(p.name));
-  const themePackages = packages.filter(p => isThemePkg(p.name));
-  const allPackages = [...libraryPackages, ...themePackages];
 
   return (
     <div {...stylex.props(styles.pageContainer)}>
@@ -110,32 +173,34 @@ export default function HomePage() {
         <XDSVStack gap={10} style={{rowGap: 60}}>
           {/* Hero */}
           <div {...stylex.props(styles.heroContainer)}>
-            <XDSText type="large" weight="semibold" xstyle={styles.heroTitle}>
-              XDS Open Source
-            </XDSText>
-            <XDSText type="display-1" xstyle={styles.heroSubtitle}>
-              Build with AI
-            </XDSText>
-            <XDSText
-              type="body"
-              color="secondary"
-              xstyle={styles.heroDescription}>
-              An open design system for building internal tools with AI-powered
-              development. Ship faster with {coreCount} accessible, themeable
-              components.
-            </XDSText>
-            <XDSHStack gap={3} xstyle={styles.heroButtons}>
-              <XDSButton
-                variant="primary"
-                label="Get started"
-                href="/docs/getting-started"
-              />
-              <XDSButton
-                variant="secondary"
-                label="Browse components"
-                href="/packages/core"
-              />
-            </XDSHStack>
+            <XDSMediaTheme mode="light">
+              <XDSText type="large" weight="semibold" xstyle={styles.heroTitle}>
+                XDS Open Source
+              </XDSText>
+              <XDSText type="display-1" xstyle={styles.heroSubtitle}>
+                Build with AI
+              </XDSText>
+              <XDSText
+                type="body"
+                color="secondary"
+                xstyle={styles.heroDescription}>
+                An open design system for building internal tools with
+                AI-powered development. Ship faster with {coreCount} accessible,
+                themeable components.
+              </XDSText>
+              <XDSHStack gap={3} xstyle={styles.heroButtons}>
+                <XDSButton
+                  variant="primary"
+                  label="Get started"
+                  href="/docs/getting-started"
+                />
+                <XDSButton
+                  variant="secondary"
+                  label="Browse components"
+                  href="/packages/core"
+                />
+              </XDSHStack>
+            </XDSMediaTheme>
           </div>
 
           {/* Libraries & Packages */}
@@ -151,29 +216,51 @@ export default function HomePage() {
               columns={{minWidth: 260, repeat: 'fit'}}
               gap={4}
               rowGap={8}>
-              {allPackages.map(pkg => (
-                <Link
-                  key={pkg.name}
-                  href={`/packages/${pkg.name.replace('@xds/', '')}`}
-                  {...stylex.props(styles.linkReset)}>
-                  <div {...stylex.props(styles.packageImageWrapper)} />
-                  <XDSVStack gap={0.5}>
-                    <span {...stylex.props(styles.monoText)}>
-                      <XDSText type="body" weight="bold">
-                        {pkg.name}
-                      </XDSText>
-                      <span {...stylex.props(styles.versionText)}>
-                        <XDSText type="supporting" color="secondary">
-                          v{pkg.version}
+              {packages.map(pkg => {
+                const theme = themeObjects[pkg.name];
+                const image = PACKAGE_IMAGES[pkg.name] ?? '/LibrariesCore.png';
+                const icon = PACKAGE_ICONS[pkg.name] ?? null;
+
+                return (
+                  <Link
+                    key={pkg.name}
+                    href={`/packages/${pkg.name.replace('@xds/', '')}`}
+                    {...stylex.props(styles.linkReset)}>
+                    {theme ? (
+                      <XDSTheme theme={theme}>
+                        <div {...stylex.props(styles.packageImageWrapper)}>
+                          <ThemeShowcaseTile label={pkg.displayName} />
+                        </div>
+                      </XDSTheme>
+                    ) : (
+                      <div
+                        {...stylex.props(styles.packageImageWrapper)}
+                        style={{backgroundImage: `url(${image})`}}>
+                        {icon && (
+                          <div {...stylex.props(styles.packageIconOverlay)}>
+                            {icon}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    <XDSVStack gap={0.5}>
+                      <span {...stylex.props(styles.monoText)}>
+                        <XDSText type="body" weight="bold">
+                          {pkg.name}
                         </XDSText>
+                        <span {...stylex.props(styles.versionText)}>
+                          <XDSText type="supporting" color="secondary">
+                            v{pkg.version}
+                          </XDSText>
+                        </span>
                       </span>
-                    </span>
-                    <XDSText type="supporting" color="secondary">
-                      {pkg.description}
-                    </XDSText>
-                  </XDSVStack>
-                </Link>
-              ))}
+                      <XDSText type="supporting" color="secondary">
+                        {pkg.description}
+                      </XDSText>
+                    </XDSVStack>
+                  </Link>
+                );
+              })}
             </XDSGrid>
           </XDSVStack>
 
@@ -195,7 +282,15 @@ export default function HomePage() {
                   key={topic.topic}
                   href={`/docs/${topic.topic}`}
                   {...stylex.props(styles.linkReset)}>
-                  <div {...stylex.props(styles.foundationImage)} />
+                  {foundationImages[topic.topic] ? (
+                    <img
+                      src={foundationImages[topic.topic]}
+                      alt={topic.title}
+                      {...stylex.props(styles.foundationImage)}
+                    />
+                  ) : (
+                    <div {...stylex.props(styles.foundationImage)} />
+                  )}
                   <XDSVStack gap={1}>
                     <XDSText type="body" weight="bold">
                       {topic.title}

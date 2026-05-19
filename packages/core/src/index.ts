@@ -51,6 +51,7 @@ export * from './Slider';
 export * from './Stack';
 export * from './Switch';
 export * from './DateInput';
+export * from './DateTimePicker';
 export * from './Field';
 export * from './FormLayout';
 export * from './Grid';

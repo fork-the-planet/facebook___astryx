@@ -61,7 +61,7 @@ export default defineConfig({
   plugins: [
     // Declare CSS layer order so theme overrides beat component base styles.
     {
-      name: 'xds-css-layer-order',
+      name: 'astryx-css-layer-order',
       transformIndexHtml() {
         return [
           {

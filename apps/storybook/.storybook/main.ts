@@ -1,7 +1,7 @@
 // Copyright (c) Meta Platforms, Inc. and affiliates.
 
 import type {StorybookConfig} from '@storybook/react-vite';
-import {xdsStylex} from '@astryxdesign/build/vite';
+import {astryxStylex} from '@astryxdesign/build/vite';
 import path from 'path';
 import {fileURLToPath} from 'url';
 
@@ -58,7 +58,7 @@ const config: StorybookConfig = {
       },
       plugins: [
         {
-          name: 'xds-color-scheme',
+          name: 'astryx-color-scheme',
           transformIndexHtml() {
             return [
               {
@@ -70,7 +70,7 @@ const config: StorybookConfig = {
           },
         },
         ...filteredPlugins,
-        ...xdsStylex({
+        ...astryxStylex({
           stylexOptions: {
             dev: false,
             styleResolution: 'application-order',

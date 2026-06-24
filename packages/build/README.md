@@ -144,12 +144,12 @@ export default nextConfig;
 ## Vite Setup
 
 ```ts
-import {xdsStylex} from '@astryxdesign/build/vite';
+import {astryxStylex} from '@astryxdesign/build/vite';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [
-    ...xdsStylex({
+    ...astryxStylex({
       stylexOptions: {
         dev: process.env.NODE_ENV === 'development',
         runtimeInjection: false,

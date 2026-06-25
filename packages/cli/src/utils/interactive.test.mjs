@@ -64,5 +64,7 @@ describe('requireInteractive', () => {
     const output = err.mock.calls.map(c => c.join(' ')).join('\n');
     expect(output).toMatch(/requires a TTY/i);
     expect(output).toMatch(/astryx theme <preset>/);
+    expect(output).toMatch(/`astryx theme`/);
+    expect(output).not.toMatch(/\bxds\b/);
   });
 });

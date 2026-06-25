@@ -60,7 +60,7 @@ export function isInteractive({
  */
 export function requireInteractive({command, hint, json = false} = {}, env) {
   if (isInteractive(env)) return;
-  const name = command ? `xds ${command}` : 'this command';
+  const name = command ? `astryx ${command}` : 'this command';
   console.error(
     `Error: \`${name}\` with no flags is interactive and requires a TTY.`,
   );

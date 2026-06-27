@@ -70,7 +70,57 @@ npm install @astryxdesign/core @astryxdesign/theme-neutral
 
 Then pick your setup below based on your framework and styling approach.
 
-### Next.js + Tailwind (simplest)
+### Next.js (simplest)
+
+The fastest way to get started. No build plugins, no PostCSS, no Babel config — Astryx ships pre-built CSS and JS, so you import three stylesheets (order matters) and wrap your app in a theme provider.
+
+**`src/app/globals.css`**
+
+```css
+@import '@astryxdesign/core/reset.css';
+@import '@astryxdesign/core/astryx.css';
+@import '@astryxdesign/theme-neutral/theme.css';
+```
+
+The import order maps to the layer cascade: `reset.css` (`@layer reset`) → `astryx.css` component styles (`@layer astryx-base`) → `theme.css` token overrides (`@layer astryx-theme`).
+
+**`src/app/providers.tsx`**
+
+```tsx
+'use client';
+
+import Link from 'next/link';
+import {Theme} from '@astryxdesign/core/theme';
+import {LinkProvider} from '@astryxdesign/core/Link';
+import {neutralTheme} from '@astryxdesign/theme-neutral/built';
+
+export function Providers({children}: {children: React.ReactNode}) {
+  return (
+    <Theme theme={neutralTheme}>
+      <LinkProvider component={Link}>{children}</LinkProvider>
+    </Theme>
+  );
+}
+```
+
+**`src/app/layout.tsx`**
+
+```tsx
+import './globals.css';
+import {Providers} from './providers';
+
+export default function RootLayout({children}: {children: React.ReactNode}) {
+  return (
+    <html lang="en">
+      <body>
+        <Providers>{children}</Providers>
+      </body>
+    </html>
+  );
+}
+```
+
+### Next.js + Tailwind
 
 No build plugins needed; XDS ships pre-built CSS that works alongside Tailwind.
 

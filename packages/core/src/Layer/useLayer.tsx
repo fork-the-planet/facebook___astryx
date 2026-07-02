@@ -99,6 +99,16 @@ export interface ContextRenderProps {
    * @default 'div'
    */
   as?: 'div' | 'span';
+  /**
+   * Pointer-enter handler attached to the popover container itself. Lets a
+   * consumer keep a hover-driven layer open while the pointer is over the
+   * surface (e.g. Tooltip/HoverCard "hoverable" behavior — WCAG 1.4.13).
+   */
+  onMouseEnter?: React.MouseEventHandler<HTMLElement>;
+  /**
+   * Pointer-leave handler attached to the popover container itself.
+   */
+  onMouseLeave?: React.MouseEventHandler<HTMLElement>;
 }
 
 /**
@@ -389,6 +399,8 @@ export function useLayer(
         className: extraClassName,
         style: extraStyle,
         as: Container = 'div',
+        onMouseEnter,
+        onMouseLeave,
       } = props || {};
 
       // CSS anchor positioning (dynamic, not in StyleX)
@@ -413,7 +425,9 @@ export function useLayer(
           role={role}
           popover={lightDismiss ? 'auto' : 'manual'}
           className={combinedClassName}
-          style={{...stylexResult.style, ...anchorStyle, ...extraStyle}}>
+          style={{...stylexResult.style, ...anchorStyle, ...extraStyle}}
+          onMouseEnter={onMouseEnter}
+          onMouseLeave={onMouseLeave}>
           {children}
         </Container>
       );

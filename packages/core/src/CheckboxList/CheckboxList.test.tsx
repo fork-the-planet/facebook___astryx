@@ -390,8 +390,8 @@ describe('CheckboxListItem standalone mode', () => {
       </List>,
     );
     // The inner native checkbox exposes mixed state via the indeterminate DOM
-    // property (not a redundant aria-checked, forms-16); the list row still
-    // carries aria-checked="mixed" for its own listitem semantics.
+    // property (not a redundant aria-checked, forms-16). The list row is a
+    // plain listitem and must not carry aria-checked (aria-allowed-attr).
     const checkbox = screen.getByRole('checkbox');
     expect(checkbox).toBeInstanceOf(HTMLInputElement);
     if (checkbox instanceof HTMLInputElement) {
@@ -419,21 +419,26 @@ describe('CheckboxListItem standalone mode', () => {
 });
 
 describe('CheckboxListItem ARIA props', () => {
-  it('sets aria-checked on the list item in collection mode', () => {
+  it('conveys checked state via the inner checkbox, not aria-checked on the listitem', () => {
     render(
       <CheckboxList label="Prefs" value={['a']} onChange={() => {}}>
         <CheckboxListItem label="Option A" value="a" />
         <CheckboxListItem label="Option B" value="b" />
       </CheckboxList>,
     );
+    // The listitem row must not carry aria-checked (not a valid attribute on
+    // role="listitem" — axe: aria-allowed-attr). Checked state is exposed by
+    // the inner native checkbox instead.
     const items = screen.getAllByRole('listitem');
-    // Item A is checked
-    expect(items[0]).toHaveAttribute('aria-checked', 'true');
-    // Item B is not checked
-    expect(items[1]).toHaveAttribute('aria-checked', 'false');
+    expect(items[0]).not.toHaveAttribute('aria-checked');
+    expect(items[1]).not.toHaveAttribute('aria-checked');
+
+    const checkboxes = screen.getAllByRole('checkbox');
+    expect(checkboxes[0]).toBeChecked();
+    expect(checkboxes[1]).not.toBeChecked();
   });
 
-  it('sets aria-checked on the list item in standalone mode', () => {
+  it('does not put aria-checked on the listitem in standalone mode', () => {
     render(
       <List>
         <CheckboxListItem label="Done" isChecked={true} />
@@ -441,18 +446,26 @@ describe('CheckboxListItem ARIA props', () => {
       </List>,
     );
     const items = screen.getAllByRole('listitem');
-    expect(items[0]).toHaveAttribute('aria-checked', 'true');
-    expect(items[1]).toHaveAttribute('aria-checked', 'false');
+    expect(items[0]).not.toHaveAttribute('aria-checked');
+    expect(items[1]).not.toHaveAttribute('aria-checked');
+
+    const checkboxes = screen.getAllByRole('checkbox');
+    expect(checkboxes[0]).toBeChecked();
+    expect(checkboxes[1]).not.toBeChecked();
   });
 
-  it('sets aria-checked="mixed" for indeterminate items', () => {
+  it('exposes indeterminate state via the checkbox, not aria-checked on the listitem', () => {
     render(
       <List>
         <CheckboxListItem label="Partial" isChecked="indeterminate" />
       </List>,
     );
     const item = screen.getByRole('listitem');
-    expect(item).toHaveAttribute('aria-checked', 'mixed');
+    expect(item).not.toHaveAttribute('aria-checked');
+    const checkbox = screen.getByRole('checkbox');
+    if (checkbox instanceof HTMLInputElement) {
+      expect(checkbox.indeterminate).toBe(true);
+    }
   });
 
   it('does not mark items aria-busy when idle', () => {

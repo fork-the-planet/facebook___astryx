@@ -26,7 +26,7 @@ export const docs = {
       {
         guidance: true,
         description:
-          'Choose the hour format (12h or 24h) that matches your audience\u2019s locale \u2014 12-hour with AM/PM for US-centric UIs, 24-hour for international or technical contexts.',
+          'Choose the hour format (12h or 24h) that matches your audience\'s locale; 12-hour with AM/PM for US-centric UIs, 24-hour for international or technical contexts.',
       },
       {
         guidance: true,
@@ -36,12 +36,12 @@ export const docs = {
       {
         guidance: true,
         description:
-          'Provide a description or placeholder that hints at the expected format or purpose, like \u201cBusiness hours: 9 AM \u2013 5 PM\u201d.',
+          'Provide a description or placeholder that hints at the expected format or purpose, like "Business hours: 9 AM \u2013 5 PM".',
       },
       {
         guidance: true,
         description:
-          'Use the status prop to surface validation errors inline \u2014 show a message like \u201cTime must be during business hours\u201d so users know exactly what to fix.',
+          'Use the status prop to surface validation errors inline; show a message like "Time must be during business hours" so users know exactly what to fix.',
       },
       {
         guidance: true,
@@ -56,12 +56,12 @@ export const docs = {
       {
         guidance: false,
         description:
-          'Don\u2019t use TimeInput for combined date-and-time selection \u2014 pair it with a separate DateInput instead.',
+          'Don\'t use TimeInput for combined date-and-time selection; pair it with a separate DateInput instead.',
       },
       {
         guidance: false,
         description:
-          'Don\u2019t hide the label \u2014 even when space is tight, keep the label visible or provide a description so the purpose is clear.',
+          'Don\'t hide the label; even when space is tight, keep the label visible or provide a description so the purpose is clear.',
       },
       {
         guidance: false,
@@ -396,7 +396,7 @@ export const docsZh = {
       {
         guidance: true,
         description:
-          'Choose the hour format (12h or 24h) that matches your audience\u2019s locale \u2014 12-hour with AM/PM for US-centric UIs, 24-hour for international or technical contexts.',
+          'Choose the hour format (12h or 24h) that matches your audience\'s locale; 12-hour with AM/PM for US-centric UIs, 24-hour for international or technical contexts.',
       },
       {
         guidance: true,
@@ -406,12 +406,12 @@ export const docsZh = {
       {
         guidance: true,
         description:
-          'Provide a description or placeholder that hints at the expected format or purpose, like \u201cBusiness hours: 9 AM \u2013 5 PM\u201d.',
+          'Provide a description or placeholder that hints at the expected format or purpose, like "Business hours: 9 AM \u2013 5 PM".',
       },
       {
         guidance: true,
         description:
-          'Use the status prop to surface validation errors inline \u2014 show a message like \u201cTime must be during business hours\u201d so users know exactly what to fix.',
+          'Use the status prop to surface validation errors inline; show a message like "Time must be during business hours" so users know exactly what to fix.',
       },
       {
         guidance: true,
@@ -421,12 +421,12 @@ export const docsZh = {
       {
         guidance: false,
         description:
-          'Don\u2019t use TimeInput for combined date-and-time selection \u2014 pair it with a separate DateInput instead.',
+          'Don\'t use TimeInput for combined date-and-time selection; pair it with a separate DateInput instead.',
       },
       {
         guidance: false,
         description:
-          'Don\u2019t hide the label \u2014 even when space is tight, keep the label visible or provide a description so the purpose is clear.',
+          'Don\'t hide the label; even when space is tight, keep the label visible or provide a description so the purpose is clear.',
       },
       {
         guidance: false,
@@ -480,7 +480,7 @@ export const docsDense = {
       {
         guidance: true,
         description:
-          'Choose hour format (12h/24h) to match locale \u2014 12h for US, 24h for international.',
+          'Choose hour format (12h/24h) to match locale; 12h for US, 24h for international.',
       },
       {
         guidance: true,
@@ -500,17 +500,17 @@ export const docsDense = {
       {
         guidance: false,
         description:
-          'Don\u2019t use for date-and-time \u2014 pair with DateInput instead.',
+          'Don\'t use for date-and-time; pair with DateInput instead.',
       },
       {
         guidance: false,
         description:
-          'Don\u2019t hide the label \u2014 keep it visible for clarity.',
+          'Don\'t hide the label; keep it visible for clarity.',
       },
       {
         guidance: false,
         description:
-          'Don\u2019t wrap a disabled TimeInput in Tooltip; use the disabledMessage prop instead.',
+          'Don\'t wrap a disabled TimeInput in Tooltip; use the disabledMessage prop instead.',
       },
     ],
   },
